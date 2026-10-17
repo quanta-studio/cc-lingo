@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from 'claude-code/testing'
 import type { On, RenderPropsOf } from 'claude-code'
 
-import { addWords, grade, languageName, nextCard, parseReply } from '../hooks/coach'
+import { addWords, grade, languageName, nextCard, normalizeDeck, parseReply } from '../hooks/coach'
 
 const PLUGIN = 'language-partner'
 const USAGE = { input_tokens: 1, output_tokens: 1, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 }
@@ -11,6 +11,14 @@ const REPLY = JSON.stringify({
   fixes: [{ from: 'on my choices', to: 'of my choice', why: '"of my choice" is the set phrase' }],
   translation: 'Aprender un idioma extranjero de mi elección',
   words: [{ word: 'elección', meaning: 'choice', example: 'Es mi elección.' }],
+})
+const JAPANESE = JSON.stringify({
+  language: 'English',
+  corrected: 'Please check the file',
+  fixes: [],
+  translation: 'ファイルを確認してください',
+  pronunciation: 'fairu o kakunin shite kudasai',
+  words: [{ word: '確認', pronunciation: 'kakunin', meaning: 'check', example: '確認します。' }],
 })
 const BAND: RenderPropsOf['AbovePrompt'] = {
   hasSurvey: false,
@@ -78,6 +86,39 @@ describe('checking prompts', () => {
 
     const status = await $.command.run(slash('lang'))
     expect(status.text).toContain('1 word to practice')
+  })
+
+  test('a language in another script shows how its translation and words sound', async ($, on) => {
+    const { clock, asked } = world(on, JAPANESE)
+    await $.session.start({ cwd: '/tmp', surface: 'terminal', isInteractive: true })
+    await $.command.run(slash('lang', 'japanese'))
+
+    await $.prompt.submit(typed('Please check the file'))
+    await clock.settle()
+
+    expect(asked[0]?.system).toContain('Latin letters')
+
+    for (const surface of ['terminal', 'desktop'] as const) {
+      const band = await $.ui.mount({ plugin: PLUGIN, surface, component: 'AbovePrompt', props: BAND })
+      expect(await band.find({ text: /fairu o kakunin shite kudasai/ })).toBeDefined()
+      await band.unmount()
+
+      const pane = await $.ui.mount({ plugin: PLUGIN, surface, component: 'Pane', props: PANE, requestId: PLUGIN })
+      expect(await pane.find({ text: /fairu o kakunin shite kudasai/ })).toBeDefined()
+      expect(await pane.find({ text: '確認 kakunin = check' })).toBeDefined()
+      await pane.unmount()
+    }
+
+    await $.command.run(slash('lang', 'practice'))
+    for (const surface of ['terminal', 'desktop'] as const) {
+      const pane = await $.ui.mount({ plugin: PLUGIN, surface, component: 'Pane', props: PANE, requestId: PLUGIN })
+      expect(await pane.find({ text: '確認' })).toBeDefined()
+      expect(await pane.find({ text: /kakunin/ })).toBeUndefined()
+      await pane.press({ key: 'reveal' })
+      expect(await pane.find({ text: /kakunin/ })).toBeDefined()
+      await pane.press({ key: 'again' })
+      await pane.unmount()
+    }
   })
 
   test('slash commands, short replies and plugin prompts are left alone', async ($, on) => {
@@ -149,6 +190,16 @@ describe('coach', () => {
     expect(reply?.words[0]?.word).toBe('elección')
     expect(parseReply('no json here')).toBeUndefined()
     expect(parseReply('{"fixes": [{"from": "a", "to": "a"}]}')?.fixes).toEqual([])
+  })
+
+  test('pronunciations are read from the reply and kept in the deck', () => {
+    const reply = parseReply(JAPANESE)
+    expect(reply?.pronunciation).toBe('fairu o kakunin shite kudasai')
+    expect(reply?.words[0]?.pronunciation).toBe('kakunin')
+    expect(parseReply(REPLY)?.pronunciation).toBeUndefined()
+
+    const deck = normalizeDeck(addWords([], reply?.words ?? [], 'Japanese', 1))
+    expect(deck[0]?.pronunciation).toBe('kakunin')
   })
 
   test('language names are tidied and nonsense refused', () => {

@@ -7,6 +7,7 @@ For example, typing `can you recieve the file and check it` while learning Japan
 ```
 ✎ recieve → receive                                         Details  Hide
 Japanese: ファイルを受け取って確認してもらえますか
+          fairu o uketotte kakunin shite moraemasu ka
 ```
 
 ## Install
@@ -40,7 +41,9 @@ In the desktop app, where `/plugin` doesn't run: click **+** next to the prompt 
 
 **The band above the prompt** appears after each prompt you type. It shows up to two grammar fixes and the translation. **Details** opens the pane, which shows the corrected text, the reason for each fix, and the words saved from that prompt. **Hide** dismisses the band until your next prompt.
 
-**Practice** shows the word you know least, or have gone longest without seeing. Press `r` to reveal its meaning and an example sentence, then press `g` (Got it) or `a` (Again). Got it moves the card up one of five boxes. Again sends it back to the first. `l` and `p` switch between the pane's tabs.
+**Pronunciation** is shown for languages that aren't written in Latin letters, such as Japanese, Chinese, Korean, Russian or Arabic. The translation and each saved word come with a romanization of how they sound: Hepburn romaji for Japanese, pinyin with tone marks for Mandarin, and the usual system for other languages.
+
+**Practice** shows the word you know least, or have gone longest without seeing. Press `r` to reveal its pronunciation, meaning and an example sentence, then press `g` (Got it) or `a` (Again). Got it moves the card up one of five boxes. Again sends it back to the first. `l` and `p` switch between the pane's tabs.
 
 ### What gets checked
 

@@ -9,7 +9,13 @@ export type PartnerSettings = {
 
 export type PartnerFix = { from: string; to: string; why: string }
 
-export type PartnerWord = { word: string; meaning: string; example?: string }
+export type PartnerWord = {
+  word: string
+  /** How the word sounds, in Latin letters; only for a language written in another script. */
+  pronunciation?: string
+  meaning: string
+  example?: string
+}
 
 /** One typed prompt and what the tutor model made of it. */
 export type PartnerCheck = {
@@ -22,6 +28,8 @@ export type PartnerCheck = {
   fixes: PartnerFix[]
   target?: string
   translation?: string
+  /** The translation as it sounds, in Latin letters; only for a language written in another script. */
+  pronunciation?: string
   words: PartnerWord[]
   error?: string
 }

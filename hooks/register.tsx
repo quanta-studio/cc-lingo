@@ -221,6 +221,14 @@ export const register: Register = on => {
           {shown.translation}
         </Text>,
       )
+      if (shown.pronunciation !== undefined) {
+        rows.push(
+          <Text wrap="truncate-end" dimColor>
+            {' '.repeat(`${shown.target}: `.length)}
+            {shown.pronunciation}
+          </Text>,
+        )
+      }
     }
 
     return (
@@ -284,6 +292,7 @@ export const register: Register = on => {
               <Text bold>{card.word}</Text>
               {isRevealed ? (
                 <Box flexDirection="column">
+                  {card.pronunciation === undefined ? null : <Text dimColor>{card.pronunciation}</Text>}
                   <Text>{card.meaning}</Text>
                   {card.example === undefined ? null : <Text dimColor>{card.example}</Text>}
                 </Box>
@@ -352,6 +361,7 @@ export const register: Register = on => {
           <Box flexDirection="column">
             <Text dimColor>{shown.target}</Text>
             <Text>{shown.translation}</Text>
+            {shown.pronunciation === undefined ? null : <Text dimColor>{shown.pronunciation}</Text>}
           </Box>
         )}
         {shown.words.length === 0 ? null : (
@@ -360,6 +370,7 @@ export const register: Register = on => {
             {shown.words.map(word => (
               <Text>
                 <Text bold>{word.word}</Text>
+                {word.pronunciation === undefined ? '' : <Text dimColor> {word.pronunciation}</Text>}
                 {` = ${word.meaning}`}
                 {word.example === undefined ? '' : <Text dimColor> ({word.example})</Text>}
               </Text>

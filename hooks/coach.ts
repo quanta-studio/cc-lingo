@@ -17,6 +17,7 @@ export type Reply = {
   corrected?: string
   fixes: PartnerFix[]
   translation?: string
+  pronunciation?: string
   words: PartnerWord[]
 }
 
@@ -57,9 +58,20 @@ export function systemPrompt({ isGrammarOn, target, level }: PartnerSettings): s
         `If the message is already written in ${target}, translate it into English instead.`,
       `Pick up to 3 words or short phrases from the ${target} side that are most useful to a ${level} learner, ` +
         `each with its English meaning and a short example sentence in ${target}.`,
+      `If ${target} is written in a script other than Latin letters, spell out how the translation and each word sound in Latin letters, ` +
+        'with the usual romanization (Hepburn romaji for Japanese, pinyin with tone marks for Mandarin, for example). ' +
+        'Leave "pronunciation" out wherever the text is already in Latin letters.',
     )
     shape.translation = `<the translation>`
-    shape.words = [{ word: `<${target} word or phrase>`, meaning: '<English meaning>', example: `<short ${target} sentence>` }]
+    shape.pronunciation = '<how the translation sounds, in Latin letters>'
+    shape.words = [
+      {
+        word: `<${target} word or phrase>`,
+        pronunciation: '<how it sounds, in Latin letters>',
+        meaning: '<English meaning>',
+        example: `<short ${target} sentence>`,
+      },
+    ]
   }
 
   return [
@@ -88,6 +100,7 @@ export function parseReply(text: string): Reply | undefined {
 
   const corrected = str(raw.corrected)
   const translation = str(raw.translation)
+  const pronunciation = str(raw.pronunciation)
   const fixes = records(raw.fixes).flatMap((fix): PartnerFix[] => {
     const from = str(fix.from)
     const to = str(fix.to)
@@ -97,11 +110,19 @@ export function parseReply(text: string): Reply | undefined {
   const words = records(raw.words)
     .flatMap((one): PartnerWord[] => {
       const word = str(one.word)
+      const pronunciation = str(one.pronunciation)
       const meaning = str(one.meaning)
       const example = str(one.example)
       if (word === undefined || meaning === undefined) return []
 
-      return [example === undefined ? { word, meaning } : { word, meaning, example }]
+      return [
+        {
+          word,
+          ...(pronunciation === undefined ? {} : { pronunciation }),
+          meaning,
+          ...(example === undefined ? {} : { example }),
+        },
+      ]
     })
     .slice(0, 3)
 
@@ -111,6 +132,7 @@ export function parseReply(text: string): Reply | undefined {
     words,
     ...(corrected === undefined ? {} : { corrected }),
     ...(translation === undefined ? {} : { translation }),
+    ...(translation === undefined || pronunciation === undefined ? {} : { pronunciation }),
   }
 }
 
@@ -157,6 +179,7 @@ export function normalizeSettings(raw: unknown): PartnerSettings {
 export function normalizeDeck(raw: unknown): PartnerCard[] {
   return records(raw).flatMap((card): PartnerCard[] => {
     const word = str(card.word)
+    const pronunciation = str(card.pronunciation)
     const meaning = str(card.meaning)
     const language = str(card.language)
     const example = str(card.example)
@@ -165,6 +188,7 @@ export function normalizeDeck(raw: unknown): PartnerCard[] {
     return [
       {
         word,
+        ...(pronunciation === undefined ? {} : { pronunciation }),
         meaning,
         ...(example === undefined ? {} : { example }),
         id: cardId(language, word),
