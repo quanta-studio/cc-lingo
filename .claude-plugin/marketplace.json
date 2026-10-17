@@ -1,5 +1,6 @@
 {
   "name": "language-partner",
-  "owner": { "name": "language-partner" },
+  "description": "A language partner for Claude Code: grammar checks and translations of the prompts you type",
+  "owner": { "name": "quanta-studio" },
   "plugins": [{ "name": "language-partner", "source": "./" }]
 }
