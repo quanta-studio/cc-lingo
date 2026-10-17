@@ -1,0 +1,5 @@
+{
+  "name": "language-partner",
+  "owner": { "name": "language-partner" },
+  "plugins": [{ "name": "language-partner", "source": "./" }]
+}

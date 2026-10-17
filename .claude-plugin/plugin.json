@@ -1,0 +1,6 @@
+{
+  "name": "language-partner",
+  "version": "0.1.0",
+  "description": "Corrects the grammar of the prompts you type and teaches you a language of your choice from them",
+  "types": "./types/index.d.ts"
+}
